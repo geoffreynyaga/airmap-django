@@ -7,6 +7,7 @@ from .views import (
     all_airspace_datasets,
     ReserveAirspaceCreateView,
     OldReserveAirspaceCreateView,
+    ReserveCreateAPIView,
 )
 
 urlpatterns = [
@@ -14,4 +15,5 @@ urlpatterns = [
     path("airspace-geojson/", all_airspace_datasets, name="airspace-geojson"),
     path("create/", ReserveAirspaceCreateView.as_view(), name="create_reserve"),
     path("old-create/", OldReserveAirspaceCreateView.as_view(), name="create_reserve"),
+    path("api/create/", ReserveCreateAPIView.as_view(), name="create_reserve_api"),
 ]

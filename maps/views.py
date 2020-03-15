@@ -74,8 +74,19 @@ class OldReserveAirspaceCreateView(CreateView):
 
     form_class = ReserveAirspaceForm
     model = ReserveAirspace
-    template_name = "maps/create2.html"
-    success_url = "/maps/map"
+    template_name = "maps/create3.html"
+    # success_url = "/maps/map"
+
+    def post(self, request, *args, **kwargs):
+
+        print(self.request, "request")
+        print((self.request.POST), "request.POST")
+
+        x = ReserveAirspace.objects.create(
+            name=self.request.POST["name"], geom=self.request.POST["geom"]
+        )
+
+        print(x, "x")
 
     # def get_context_data(self, *args, **kwargs):
     #     context = super(ReserveAirspaceCreateView, self).get_context_data(
@@ -92,3 +103,78 @@ class OldReserveAirspaceCreateView(CreateView):
     #     context["my_pending_approval_airspaces_count"] = my_pending_airspaces.count()
     #     # context['myflightlogs'] = FlightLog.objects.filter(user=thisuser)
     #     return context
+
+
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework import status
+
+
+class ReserveCreateAPIView(APIView):
+    permission_classes = (AllowAny,)
+    # authentication_classes = (TokenAuthentication, SessionAuthentication)
+
+    def post(self, request):
+        import json
+
+        print(request.data, "in API")
+        name = request.data["name"]
+        # geom = json.loads(request.data["geom"])
+        geom = json.loads(request.data["geom"])
+
+        print(name, "name")
+        print(geom, "geom")
+
+        # print(json.loads(geom), " type geom")
+        # print(dir(geom), " dir geom")
+
+        """
+
+        {
+        "type":"FeatureCollection",
+        "features":[
+        {"type":"Feature","properties":{},
+        "geometry":{"type":"Polygon",
+                    "coordinates":[
+                        [
+                            [36.901230812072754,-1.3365200875255174],
+                            [36.901230812072754,-1.3341603846017482],
+                            [36.903719902038574,-1.3341603846017482],
+                            [36.903719902038574,-1.3365200875255174],
+                            [36.901230812072754,-1.3365200875255174]
+                        ]
+                    ]
+                }}
+            ]}
+        """
+
+        geom_type = geom["features"][0]["geometry"]["type"]
+
+        coords = geom["features"][0]["geometry"]["coordinates"][0]
+        print(coords, "coords")
+
+        from django.contrib.gis.geos import (
+            GEOSGeometry,
+            LineString,
+            MultiLineString,
+            Polygon,
+        )
+
+        if geom_type == "Polygon":
+            multi_line = Polygon(coords)
+            print(multi_line, "multi_line")
+
+        # line = LineString(coords)
+        # print(line, "line")
+
+        x = ReserveAirspace.objects.create(name=name, geom=multi_line)
+        print(x, "x instance")
+
+        return Response(
+            {"ResultDesc": "Reserve Airspace Created successfully"},
+            content_type="application/json",
+            status=status.HTTP_201_CREATED,
+        )
