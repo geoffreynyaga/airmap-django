@@ -205,16 +205,9 @@
 
 
       fin = url + "/" + layerString + `/{z}/{x}/{y}.pbf?apikey=${AIRMAP_API_KEY}`
-      var x = L.tileLayer(fin, {
-        attribution: 'Map data &copy; <a href="http://openstreetmap.org">yyyyyyyyyyyyy</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>'
 
-    })
 
-    var gl = L.mapboxGL({
-	style: url,
-	accessToken: AIRMAP_API_KEY
-}).addTo(map);
-     //console.log(L,"L")
+
 
   </script>
 
