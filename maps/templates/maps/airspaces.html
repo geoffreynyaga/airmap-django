@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+
+{% extends "base.html" %}
+
+{% load static %}
+
+      
+ 
+{% block head %}
+
+     {% load leaflet_tags %} 
+     {% leaflet_js plugins="ALL" %}
+     {% leaflet_css plugins="ALL" %}
+
+      <link rel="stylesheet" href="{% static 'leaflet-search/src/leaflet-search.css' %}">
+
+
+      <link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css' rel='stylesheet' />
+
+      <title>Airspace</title>
+
+
+      <style>
+              .mapcontainer {
+                  margin: 0;
+                  padding: 0;
+              }
+
+
+              #gis  {
+                height:80vh;
+                position: relative;
+                width: 100%;
+                top: 0;
+                right: 0;
+              }
+
+      </style>
+
+{% endblock %}
+
+
+
+{% block body %}
+
+<section class="content">
+
+  {% if user.is_authenticated %}
+
+  <div class="row">
+    <div class="col-xs-5">
+      <span class="pull-left">
+        <a href="{%url 'create_reserve'%}" >
+          Create Flight Plan
+          <i class="fa fa-arrow-right" aria-hidden="true"></i>
+        </a>
+      </span>
+    </div>
+    <div class="col-xs-2">
+        <div class="text-center">
+          <a href="{%url 'home'%}" >
+            <i class="fa fa-home fa-2x" aria-hidden="true"></i>
+            
+          </a>
+        </div>
+
+    </div>
+    <div class="col-xs-5">
+      <span class="pull-right">
+        <a href="{%url 'logs_list'%}" >
+          Go to Flight Logs 
+          <i class="fa fa-arrow-right" aria-hidden="true"></i>
+        </a>
+      </span>
+
+    </div>
+
+  </div>
+
+  {% endif %}
+
+<div  id='mapcontainer'>
+
+    <div class="panel panel-primary" >
+
+
+          {% load geojson_tags %}
+
+            <script type="text/javascript">
+
+            bounds = new L.LatLngBounds(new L.LatLng(4.740950, 41.858445), new L.LatLng(-4.921208,  33.922226));
+
+              function our_layers(map,options){
+
+              {% include 'notams/includes/notam_datasets.html' %}
+              {% include 'applications/includes/location.html'%}
+
+
+              {% include 'maps/includes/geofence_datasets.html'%}
+              {% include 'applications/includes/reserved_airspace_datasets.html' %}
+
+              {% include 'maps/includes/location_datasets.html'%}
+
+
+              {% include 'maps/includes/obstacles_datasets.html' %}
+
+
+
+              {% include 'applications/includes/search.html' %}
+
+
+
+              var latlngs = L.rectangle(bounds).getLatLngs();
+              map.setMaxBounds(bounds);	// Should not enter infinite recursion
+
+              map.addControl(new L.Control.Fullscreen());
+
+
+            } //end function our_layers
+
+
+            </script>
+
+          {%  leaflet_map "gis" callback="window.our_layers" %}
+
+
+
+
+<script type="text/javascript" src="{% static 'dist/leaflet.ajax.js' %}" ></script>
+
+<script type="text/javascript" src="{% static 'leaflet-search/src/leaflet-search.js' %}" ></script>
+
+<script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/Leaflet.fullscreen.min.js'></script>
+
+
+</div>
+</div>
+
+
+
+
+</section>
+
+
+{% endblock %}

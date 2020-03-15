@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+{% load static %}
+
+<html>
+
+<head>
+  <title>Add Reserve</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+
+  <link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css' rel='stylesheet' />
+  <link rel="stylesheet" href="{% static 'leaflet-search/src/leaflet-search.css' %}">
+  <link rel="stylesheet" href="{% static 'leaflet-measure/dist/leaflet-measure.css' %}">
+  <link rel="stylesheet" href="{% static 'leaflet-measure/normalize.css/normalize.css' %}">
+  <link rel="stylesheet" href="{% static 'leaflet-measure-path/leaflet-measure-path.css' %}">
+  <link rel="stylesheet" href="{% static 'leaflet-coordinates/Leaflet.Coordinates-0.1.5.css' %}">
+
+
+
+
+  <style>
+    .leaflet-container {
+      /* all maps */
+      width: 100%;
+      height: 70vh;
+    }
+
+    body {
+      padding: 0px;
+      margin: 0px;
+      padding-top: 0px;
+      margin-top: 0px;
+
+    }
+  </style>
+
+
+
+
+  {% load bootstrap3 %}
+    {% load leaflet_tags %}
+
+    {% bootstrap_css %}
+    {% bootstrap_javascript jquery='full' %}
+    {% leaflet_js plugins="ALL" %}
+    {% leaflet_css plugins="ALL" %}
+
+  {{ form.media }}
+
+
+ {% comment %} <script src="{% static 'leafletMapbox/Leaflet.MapboxVectorTile.js' %}"></script> {% endcomment %}
+
+    {% comment %} <link
+          href="https://api.mapbox.com/mapbox.js/v3.2.1/mapbox.css"
+          rel="stylesheet"
+        /> {% endcomment %}
+  {% comment %} <script src="https://api.mapbox.com/mapbox.js/v3.2.1/mapbox.js"></script> {% endcomment %}
+
+    <script src="{% static 'leaflet-ajax/leaflet.ajax.js' %}"></script>
+
+    <script src="{% static 'leaflet/leaflet-mapbox.js' %}"></script>
+
+  </head>
+
+<body>
+
+  <div class="row">
+    <div class="col-xs-12">
+      <a href="{% url 'home' %}" class="btn btn-primary btn-block">Home</a>
+    </div>
+  </div>
+
+
+  <form method="POST" enctype="multipart/form-data">
+    <div class="text-center">
+       {% bootstrap_form_errors form %}
+       {{ form.fieldname.errors }}
+
+    </div>
+
+
+   {% csrf_token %}
+    <div class="row">
+
+      <div class="col-sm-9">
+        <div class="col-sm-8">
+
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+
+            {{form.geom}}
+             {% bootstrap_field form.geom %}
+
+
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-3">
+        <div class="panel panel-default">
+          <div class="panel-body">
+             {% bootstrap_field form.name %}
+            <button type="submit" class="btn btn-primary btn-lg btn-block">Submit</button>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </form>
+
+
+  <script type="text/javascript">
+    function id_site_location_geom_map_callback(map, options) {
+      geodjango_id_site_location_geom.store_class = L.FieldStore;
+
+      (new geom(geodjango_id_site_location_geom)).addTo(map);
+
+    };
+
+
+    bounds = new L.LatLngBounds(new L.LatLng(4.740950, 41.858445), new L.LatLng(-4.921208, 33.922226));
+     //console.log(L,"L")
+     geom = L.GeometryField.extend({
+           addTo: function (map) {
+
+      L.GeometryField.prototype.addTo.call(this, map);
+      // Customize map for field
+
+      {% include 'maps/includes/search.html' %}
+
+      drawControl = this._drawControl;
+
+      drawControl._toolbars.draw.options.polyline = false;
+      drawControl._toolbars.draw.options.polygon = true;
+      drawControl._toolbars.draw.options.rectangle = true;
+      drawControl._toolbars.draw.options.marker = false;
+
+      drawControl.options.draw.polygon.allowIntersection = false;
+      drawControl.options.draw.polygon.showArea = true;
+
+
+      map.addControl(drawControl);
+      map.addControl(new L.Control.Fullscreen());
+
+
+      {% include 'maps/includes/reserved_airspace_datasets.html' %}
+
+       {% include 'maps/includes/location.html' %}
+
+      var measureControl = L.control.measure();
+      measureControl.addTo(map);
+
+      var latlngs = L.rectangle(bounds).getLatLngs();
+      // L.polyline(latlngs[0].concat(latlngs[0][0])).addTo(map);
+      map.setMaxBounds(bounds); // Should not enter infinite recursion
+
+      map.on('draw:created', function (event) {
+        // Assuming the clicked feature is a shape, not a point marker.
+        console.log(event)
+        map.fitBounds(event.layer.getBounds());
+      });
+
+      map.on('draw:edited', function (e) {
+        var layers = e.layers;
+        layers.eachLayer(function (layer) {
+          if (layer instanceof L.Polygon) {
+            //Do marker specific actions here
+            map.fitBounds(layer.getBounds());
+          }
+        });
+      });
+    }
+    });
+
+      var url = "https://api.airmap.com/maps/v4/tiles";
+
+      //https://developers.airmap.com/v2.0/docs/add-airspace-layers-to-the-map
+      var layers = [
+        "airports_commercial",
+        "airports_recreational_private",
+        "airports_commercial_private",
+        "class_b",
+        "class_c",
+        "class_d",
+        "class_e0",
+        "sua_prohibited",
+        "sua_restricted",
+        "national_parks",
+        "noaa",
+        "hospitals",
+        "schools",
+        "heliports",
+        "power_plants",
+        "tfrs",
+        "wildfires"
+      ];
+      var layerString = layers.toString().split(",");
+
+      const AIRMAP_API_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjcmVkZW50aWFsX2lkIjoiY3JlZGVudGlhbHw0Z242Z0tNaW5KODQza2h6NjRFZGJpT1pBS25hIiwiYXBwbGljYXRpb25faWQiOiJhcHBsaWNhdGlvbnxRTHk0NVIySDhKV3YzZ2lOUUdtM1poRHYwQTRxIiwib3JnYW5pemF0aW9uX2lkIjoiZGV2ZWxvcGVyfDc5NVlrQm1Db3hSQm53aTluOURiTEh3OTVLMFEiLCJpYXQiOjE1MjcxNTA4MDJ9.TkESuJIEQ9pjfU9F4TgIUNCF15OO2eeWU1GRONXf33Q";
+
+
+      fin = url + "/" + layerString + `/{z}/{x}/{y}.pbf?apikey=${AIRMAP_API_KEY}`
+      var x = L.tileLayer(fin, {
+        attribution: 'Map data &copy; <a href="http://openstreetmap.org">yyyyyyyyyyyyy</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>'
+
+    })
+
+    var gl = L.mapboxGL({
+	style: url,
+	accessToken: AIRMAP_API_KEY
+}).addTo(map);
+     //console.log(L,"L")
+
+  </script>
+
+
+  <script type="text/javascript" src="{% static 'leaflet-search/src/leaflet-search.js' %}"></script>
+
+  <script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/Leaflet.fullscreen.min.js'></script>
+  <script type="text/javascript" src="{% static 'leaflet-measure/dist/leaflet-measure.js' %}"></script>
+  <script type="text/javascript" src="{% static 'leaflet-coordinates/Leaflet.Coordinates-0.1.5.min.js' %}"></script>
+
+<script
+  src="https://code.jquery.com/jquery-3.4.1.min.js"
+  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+  crossorigin="anonymous"></script>
+
+  <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+
+
+</body>
+
+</html>
