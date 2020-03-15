@@ -8,7 +8,7 @@ class ReserveAirspace(gis_models.Model):
     This is the main model class to create reserve airspace
     it inherits from the following models
     from django.contrib.gis.db import models as gis_models
-    the geom extends the models' PolgonField. Thus we can only draw polygons
+    the geom extends the models' PolygonField. Thus we can only draw polygons
     A multipolygonField would have given us ability to draw lines as well
     """
 
