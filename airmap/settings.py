@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     "django.contrib.gis",
     "leaflet",
     "bootstrap3",
+    "rest_framework",
+    "rest_framework_gis",
     "maps",
 ]
 
@@ -137,4 +139,18 @@ LEAFLET_CONFIG = {
     "MIN_ZOOM": 7,
     "SCALE": "metric",
     "ATTRIBUTION_PREFIX": "Anga Maps",
+    "TILES": [
+        (
+            "OSM Hydda",
+            "https://{s}.tile.openstreetmap.se/hydda/full/{z}/{x}/{y}.png",
+            {},
+        ),
+        ("Street Map", "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {}),
+        ("Topo Map", "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {}),
+        (
+            "Overlay",
+            "https://api.airmap.com/maps/v4/tiles/airports_commercial/{z}/{x}/{y}.png?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjcmVkZW50aWFsX2lkIjoiY3JlZGVudGlhbHw0Z242Z0tNaW5KODQza2h6NjRFZGJpT1pBS25hIiwiYXBwbGljYXRpb25faWQiOiJhcHBsaWNhdGlvbnxRTHk0NVIySDhKV3YzZ2lOUUdtM1poRHYwQTRxIiwib3JnYW5pemF0aW9uX2lkIjoiZGV2ZWxvcGVyfDc5NVlrQm1Db3hSQm53aTluOURiTEh3OTVLMFEiLCJpYXQiOjE1MjcxNTA4MDJ9.TkESuJIEQ9pjfU9F4TgIUNCF15OO2eeWU1GRONXf33Q",
+            {},
+        ),
+    ],
 }
